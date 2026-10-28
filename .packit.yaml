@@ -1,0 +1,32 @@
+---
+upstream_project_url: https://github.com/dav-pascual/freeipa
+upstream_package_name: freeipa
+downstream_package_name: freeipa
+specfile_path: freeipa.spec
+
+srpm_build_deps:
+  - git-core
+  - tar
+
+actions:
+  post-upstream-clone:
+    - git submodule update --init --recursive
+    # configure normally fills these in; a ".devNNN" version also skips gpgverify
+    - cp freeipa.spec.in freeipa.spec
+    # packit's spec parser strips %(...) shell expansions, which leaves krb5_base_version empty
+    - sed -i '/^%define krb5_base_version /a %if "%{krb5_base_version}" == ""\n%define krb5_base_version %{krb5_version}\n%endif' freeipa.spec
+    - bash -c 'v=$(sed -n "s/^define(IPA_VERSION_\(MAJOR\|MINOR\|RELEASE\), \([0-9]*\))/\2/p" VERSION.m4 | paste -sd.).dev$(git log -1 --format=%cd --date=format:%Y%m%d%H%M); sed -i "s/@VERSION@/$v/g; s/@VENDOR_SUFFIX@/0/g" freeipa.spec'
+  get-current-version:
+    - bash -c 'grep -m1 "^%define IPA_VERSION " freeipa.spec | cut -d" " -f3'
+  # git archive would drop the freeipa-webui submodule
+  create-archive:
+    # (tarball is written outside the tree so tar doesn't see its own directory change)
+    - bash -c 'v=$(grep -m1 "^%define IPA_VERSION " freeipa.spec | cut -d" " -f3); t=$(mktemp -d); tar --exclude-vcs --exclude="./freeipa-*.tar.gz" --exclude="./*.src.rpm" --exclude="./freeipa.spec" --transform "s,^\.,freeipa-$v," -czf "$t/freeipa-$v.tar.gz" . && mv "$t/freeipa-$v.tar.gz" . && rmdir "$t" && echo "freeipa-$v.tar.gz"'
+
+jobs:
+  - job: copr_build
+    trigger: pull_request
+    targets:
+      - fedora-rawhide-x86_64
+    # freeipa-webui build runs npm clean-install
+    enable_net: true
