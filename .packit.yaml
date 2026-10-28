@@ -15,7 +15,9 @@ actions:
     - cp freeipa.spec.in freeipa.spec
     # packit's spec parser strips %(...) shell expansions, which leaves krb5_base_version empty
     - sed -i '/^%define krb5_base_version /a %if "%{krb5_base_version}" == ""\n%define krb5_base_version %{krb5_version}\n%endif' freeipa.spec
-    - bash -c 'v=$(sed -n "s/^define(IPA_VERSION_\(MAJOR\|MINOR\|RELEASE\), \([0-9]*\))/\2/p" VERSION.m4 | paste -sd.).dev$(git log -1 --format=%cd --date=format:%Y%m%d%H%M); sed -i "s/@VERSION@/$v/g; s/@VENDOR_SUFFIX@/0/g" freeipa.spec'
+    # the archive has no .git, so turn the git snapshot version into a fixed pre-release
+    # (configure then produces the same version as the spec)
+    - bash -c 'v=$(sed -n "s/^define(IPA_VERSION_\(MAJOR\|MINOR\|RELEASE\), \([0-9]*\))/\2/p" VERSION.m4 | paste -sd.).dev$(git log -1 --format=%cd --date=format:%Y%m%d%H%M); sed -i "s/@VERSION@/$v/g; s/@VENDOR_SUFFIX@/0/g" freeipa.spec; sed -i "s/^define(IPA_VERSION_IS_GIT_SNAPSHOT, yes)/define(IPA_VERSION_IS_GIT_SNAPSHOT, no)/; s/^define(IPA_VERSION_PRE_RELEASE, )/define(IPA_VERSION_PRE_RELEASE, .${v##*.})/" VERSION.m4'
   get-current-version:
     - bash -c 'grep -m1 "^%define IPA_VERSION " freeipa.spec | cut -d" " -f3'
   # git archive would drop the freeipa-webui submodule
