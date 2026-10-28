@@ -27,6 +27,6 @@ jobs:
   - job: copr_build
     trigger: pull_request
     targets:
-      - fedora-rawhide-x86_64
+      - fedora-44-x86_64
     # freeipa-webui build runs npm clean-install
     enable_net: true
