@@ -45,7 +45,7 @@ class ServerUninstallInterface(service.ServiceInstallInterface):
     ignore_topology_disconnect = knob(
         None,
         description="do not check whether server uninstall disconnects the "
-                    "topology (domain level 1+)",
+                    "topology (domain level 1+) [idmci-pr-copr-check] [idmci-poc-a1]",
     )
     ignore_topology_disconnect = master_install_only(ignore_topology_disconnect)
 
