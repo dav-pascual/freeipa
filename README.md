@@ -80,3 +80,6 @@ Please see the file called COPYING.
   subscribe to the freeipa-devel mailing list at
   https://lists.fedoraproject.org/archives/list/freeipa-devel@lists.fedorahosted.org/ or join
   us in IRC at <irc://irc.libera.chat/freeipa>
+
+<!-- idmci packit F45 build check (throwaway) -->
+
